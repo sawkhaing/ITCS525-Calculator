@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>macOS-style Calculator</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <div class="window">
+        <div class="titlebar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <div class="brand" title="Double-click to set API base">Calculator</div>
+        </div>
+
+        <div class="main">
+            <!-- LEFT: History -->
+            <aside class="history-panel">
+                <div class="h-head">
+                    <span>History</span>
+                    <button class="trash" id="clearHistory" title="Clear history" aria-label="Clear history">
+                        <!-- simple trash icon -->
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M3 6h18M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m1 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6h12z"
+                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="h-scroll" id="history"></div>
+            </aside>
+
+            <div class="divider"></div>
+
+            <!-- RIGHT: Calculator -->
+            <section class="calc">
+                <div class="display">
+                    <div id="expr" class="expr"></div>
+                    <div id="value" class="value">0</div>
+                </div>
+
+                <div class="grid" id="grid">
+                    <!-- Row 1 -->
+                    <button class="btn-func" data-action="clear">AC</button>
+                    <button class="btn-func" data-action="negate">±</button>
+                    <button class="btn-func" data-key="%">%</button>
+                    <button class="btn-ops" data-op="÷">÷</button>
+                    <!-- Row 2 -->
+                    <button class="btn-light" data-key="7">7</button>
+                    <button class="btn-light" data-key="8">8</button>
+                    <button class="btn-light" data-key="9">9</button>
+                    <button class="btn-ops" data-op="×">×</button>
+                    <!-- Row 3 -->
+                    <button class="btn-light" data-key="4">4</button>
+                    <button class="btn-light" data-key="5">5</button>
+                    <button class="btn-light" data-key="6">6</button>
+                    <button class="btn-ops" data-op="-">-</button>
+                    <!-- Row 4 -->
+                    <button class="btn-light" data-key="1">1</button>
+                    <button class="btn-light" data-key="2">2</button>
+                    <button class="btn-light" data-key="3">3</button>
+                    <button class="btn-ops" data-op="+">+</button>
+                    <!-- Row 5 -->
+                    <button class="btn-light btn-wide" data-key="0">0</button>
+                    <button class="btn-light" data-key=".">.</button>
+                    <button class="btn-ops" data-action="equals">=</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="index.js" defer></script>
+</body>
+
+</html>

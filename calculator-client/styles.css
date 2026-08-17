@@ -1,0 +1,254 @@
+:root {
+    --bg: #2c2c2e;
+    --panel: #1c1c1e;
+    --display: #000;
+    --btn: #3a3a3c;
+    --btn-light: #4a4a4c;
+    --btn-ops: #ff9f0a;
+    --btn-ops-active: #ffb454;
+    --btn-func: #a5a5a7;
+    --text: #fff;
+    --muted: #c7c7cc;
+    --glass: rgba(255, 255, 255, .06);
+    --divider: rgba(255, 255, 255, .12);
+}
+
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(1200px 800px at 10% 10%, #3a3a3c 0%, #1c1c1e 55%, #000 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    color: var(--text);
+}
+
+.window {
+    width: 740px;
+    max-width: 95vw;
+    background: var(--bg);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .06) inset;
+    border: 1px solid rgba(255, 255, 255, .06);
+    display: grid;
+    grid-template-rows: 34px 1fr;
+}
+
+.titlebar {
+    height: 34px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.dot.red {
+    background: #ff5f57
+}
+
+.dot.yellow {
+    background: #febc2e
+}
+
+.dot.green {
+    background: #28c840
+}
+
+.brand {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .3px;
+    cursor: default
+}
+
+.main {
+    display: grid;
+    grid-template-columns: 300px 1px 1fr;
+    min-height: 460px;
+}
+
+.divider {
+    background: var(--divider)
+}
+
+/* ---- History (left) ---- */
+.history-panel {
+    background: linear-gradient(180deg, #2c2c2e, #1e1e20);
+    display: flex;
+    flex-direction: column;
+}
+
+.h-head {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.trash {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    opacity: .8;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #d1d1d3;
+    padding: 0;
+}
+
+.trash:hover {
+    opacity: 1
+}
+
+.trash svg {
+    width: 16px;
+    height: 16px;
+    display: block
+}
+
+.h-scroll {
+    overflow: auto;
+    padding: 8px 10px 14px;
+}
+
+.h-section {
+    margin-top: 10px;
+}
+
+.h-title {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 6px 6px;
+}
+
+.h-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--glass);
+    margin: 6px 4px;
+}
+
+.h-item b {
+    color: #fff
+}
+
+/* ---- Calculator (right) ---- */
+.calc {
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+.display {
+    background: var(--display);
+    color: var(--text);
+    padding: 16px;
+    display: grid;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+.expr {
+    font-size: 14px;
+    color: var(--muted);
+    text-align: right;
+    min-height: 20px;
+    word-wrap: anywhere;
+}
+
+.value {
+    font-size: 44px;
+    font-weight: 600;
+    text-align: right;
+    line-height: 1.2;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 14px;
+    background: linear-gradient(180deg, var(--bg), var(--panel));
+}
+
+button {
+    appearance: none;
+    border: none;
+    border-radius: 16px;
+    padding: 16px;
+    font-size: 20px;
+    color: var(--text);
+    background: var(--btn);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .6), 0 1px 0 rgba(255, 255, 255, .05) inset;
+    cursor: pointer;
+    transition: transform .02s ease, filter .12s ease, background .12s ease;
+    user-select: none;
+}
+
+button:active {
+    transform: translateY(1px);
+    filter: brightness(1.05);
+}
+
+.btn-func {
+    background: var(--btn-func);
+    color: #000
+}
+
+.btn-light {
+    background: var(--btn-light)
+}
+
+.btn-ops {
+    background: var(--btn-ops);
+    color: #000
+}
+
+.btn-ops.active {
+    background: var(--btn-ops-active)
+}
+
+.btn-wide {
+    grid-column: span 2
+}
+
+@media (max-width: 760px) {
+    .window {
+        width: 360px
+    }
+
+    .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 220px 1px auto;
+    }
+
+    .history-panel {
+        order: 3;
+        min-height: 220px
+    }
+
+    .divider {
+        order: 2
+    }
+}
