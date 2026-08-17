@@ -1,0 +1,16 @@
+name: Testing
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - run: pip install -U pip
+      - run: pip install fastapi uvicorn[standard] asteval pytest httpx2
+      - run: pytest -q
