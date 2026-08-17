@@ -38,3 +38,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Compressed archives and document files
+*.zip
+*.pdf
+
