@@ -12,12 +12,8 @@ dependencies = [
     "fastapi[standard]>=0.141.1",
 ]
 
-[project.scripts]
-lecture-2 = "lecture_2:main"
-
-[build-system]
-requires = ["uv_build>=0.12.3,<0.13.0"]
-build-backend = "uv_build"
+[tool.uv]
+package = false
 
 [dependency-groups]
 dev = [
