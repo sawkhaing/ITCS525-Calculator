@@ -1,7 +1,8 @@
 #test_calculator.py
 
 import pytest
-from calculator import expand_percent  # import your function
+from calculator import expand_percent
+from models import Expression, CalculatorLog
 
 def test_add_percent():
     """Test addition where B% means 'B percent of A'."""
@@ -30,3 +31,16 @@ def test_standalone_100_percent():
 def test_two_standalone_percents():
     """Test expression with two standalone percentages."""
     assert expand_percent("10% + 20%") == "(10/100) + (20/100)"
+
+def test_expression_model_expand_percent():
+    """Test Expression model's expand_percent method."""
+    expr_obj = Expression(expr="100 - 6%")
+    assert expr_obj.expand_percent() == "100 - ((6/100)*100)"
+
+def test_calculator_log_model():
+    """Test CalculatorLog model instantiation and default timestamp."""
+    log = CalculatorLog(expr="2 + 2", result=4)
+    assert log.expr == "2 + 2"
+    assert log.result == 4
+    assert log.timestamp is not None
+

@@ -57,19 +57,32 @@ A FastAPI-based REST API for evaluating mathematical expressions with percentage
 
 ---
 
-## 📡 API Endpoint & Documentation
+## 📡 API Endpoints & Documentation
 
 Once the server is running, access the interactive API docs at:
 * **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 * **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-### Endpoint Specification
+### Data Models (`models.py`)
 
+* **`Expression`**: Request body for calculation containing `expr: str` and `expand_percent()` method.
+* **`CalculatorLog`**: Calculation history entry containing `timestamp`, `expr`, and `result`.
+
+### Endpoints Specification
+
+#### 1. Calculate Expression
 * **`POST /calculate`**
-  * **Query Parameter**: `expr` (string)
+  * **Request Body** (`Expression`):
+    ```json
+    {
+      "expr": "5 + 10%"
+    }
+    ```
   * **Example Request**:
     ```bash
-    curl -X POST "http://127.0.0.1:8000/calculate?expr=5%2B10%25"
+    curl -X POST "http://127.0.0.1:8000/calculate" \
+         -H "Content-Type: application/json" \
+         -d '{"expr": "5 + 10%"}'
     ```
   * **Example Response**:
     ```json
@@ -78,6 +91,38 @@ Once the server is running, access the interactive API docs at:
       "expr": "5 + 10%",
       "result": 5.5,
       "error": ""
+    }
+    ```
+
+#### 2. Get Calculation History
+* **`GET /history`**
+  * **Query Parameter**: `limit` (optional integer, default `50`)
+  * **Example Request**:
+    ```bash
+    curl -X GET "http://127.0.0.1:8000/history?limit=10"
+    ```
+  * **Example Response** (`list[CalculatorLog]`):
+    ```json
+    [
+      {
+        "timestamp": "2026-08-27T23:20:00.000000",
+        "expr": "5 + 10%",
+        "result": 5.5
+      }
+    ]
+    ```
+
+#### 3. Clear History
+* **`DELETE /history`**
+  * **Example Request**:
+    ```bash
+    curl -X DELETE "http://127.0.0.1:8000/history"
+    ```
+  * **Example Response**:
+    ```json
+    {
+      "ok": true,
+      "message": "History cleared"
     }
     ```
 
@@ -94,3 +139,4 @@ uv run pytest
 # With activated virtual environment
 pytest
 ```
+
