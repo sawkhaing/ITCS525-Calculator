@@ -43,3 +43,8 @@ Thumbs.db
 *.zip
 *.pdf
 
+
+# Node.js
+node_modules/
+dist/
+
