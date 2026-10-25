@@ -4,13 +4,20 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: calculator-server
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.13"
+          enable-cache: true
 
-      - run: pip install -U pip
-      - run: pip install fastapi uvicorn[standard] asteval pytest httpx2
-      - run: pytest -q
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run pytest
+        run: uv run pytest -q
