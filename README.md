@@ -1,72 +1,164 @@
-# Lab 8 solution: useEffect and useContext
+# ITCS525: Composing Docker Containers for Web Apps
 
-[Lab requirements](https://app.notion.com/p/northanapon/useEffect-and-useContext-236dd5f44b7f806c972fc87f79c81c77)
+[Lab Assignment Requirements](https://northanapon.notion.site/Composing-Docker-containers-for-Web-apps-236dd5f44b7f800ba116c1438518bd00)
 
-This solution merges Lab 6's client/server calculator with Lab 7's Tailwind calculator design, then adds history loading and a light/dark theme. Previous lecture examples are left intact.
+This repository contains the multi-container Docker Compose architecture for the ITCS525 Calculator Web Application, composing a FastAPI backend server, a MySQL 8.4 database service with healthchecks and volume persistence, and a React + Tailwind CSS client.
 
-## Use the same setup
+---
 
-- **Server:** `calculator-server` follows the [OOP refactoring lab](https://app.notion.com/p/northanapon/Apply-OOP-concepts-to-refactor-a-project-236dd5f44b7f80a094f9f5278bae5f24), with inherited schemas, FastAPI dependencies, and separate calculator/history routers. It keeps the earlier server's endpoints and React request/response format. See its [README](calculator-server/README.md) for the structure and tests.
-- **Client:** React 19, Vite 7, Tailwind CSS 4, and the same package manifest and lockfile as `lecture-06/calculator-react`.
-- **Components:** keep `App.jsx` and `Button.jsx`, adding only `ThemeContext.js`. Use `fetch`, `useState`, `useEffect`, and `useContext`; no additional libraries.
+## Architecture Overview
 
-## Run
-
-Open two terminals at the repository root. Use Node.js 22.12+ (or 20.19+) for Vite 7 and Python 3.13 with uv for the calculator server, as in the earlier labs.
-
-Terminal 1 — install dependencies and start the included server:
-
-```sh
-cd lecture-08-solution/calculator-server
-uv sync --frozen
-uv run fastapi dev app/main.py
+```text
+ITCS525-Calculator/
+├── calculator-server/               # Backend API + Docker Compose setup
+│   ├── app/                         # FastAPI application source
+│   │   ├── main.py                  # App entry point, CORS, and /test-db endpoint
+│   │   ├── dependencies.py          # History injection and percentage evaluation
+│   │   ├── schemas.py               # Pydantic models (ExpressionIn, ExpressionOut)
+│   │   └── routers/                 # Route handlers (calculator, history)
+│   ├── compose.yaml                 # Docker Compose multi-container configuration
+│   ├── Dockerfile                   # Container build instructions (Python 3.13-slim)
+│   ├── .dockerignore                # Build exclusions
+│   ├── requirements.txt             # Locked dependencies for container build
+│   ├── pyproject.toml / uv.lock     # Project dependency manifests managed with uv
+│   ├── prompts.txt                  # Recorded AI prompts for configuration generation
+│   └── test_*.py                    # Pytest test suite (21 unit tests)
+├── calculator-react/                # React 19 + Tailwind CSS 4 frontend
+│   ├── src/                         # React components (App, Button, ThemeContext)
+│   └── package.json                 # Client dependencies
+└── preview-dark.png                 # UI preview screenshot
 ```
 
-The API runs at `http://localhost:8000`; its documentation is at `http://localhost:8000/docs`.
+---
 
-Terminal 2 — start the solution:
+## Container Architecture Specifications
 
-```sh
-cd lecture-08-solution/calculator-react
+| Service | Image / Build | Ports | Volumes / Mounts | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **`backend`** | Built from `./calculator-server/Dockerfile` | `34242:5000` | `./app:/app/app` (bind mount) | Runs FastAPI dev server on `0.0.0.0:5000`. Depends on `database` with `service_healthy`. |
+| **`database`** | `mysql:8.4` | `127.0.0.1:54242:3306` | `dbdata:/var/lib/mysql` (named volume) | Database: `appdb`, User: `appuser`, Password: `classroom-app`. Configured with health check. |
+
+---
+
+## Quick Start with Docker Compose
+
+Ensure Docker Desktop is running, then navigate to `calculator-server`:
+
+```bash
+cd calculator-server
+```
+
+### 1. Validate Compose Configuration
+```bash
+docker compose config
+```
+
+### 2. Build and Start Containers
+```bash
+docker compose up --build -d
+```
+
+### 3. Check Container Status and Health
+```bash
+docker compose ps
+```
+Both `backend` and `database` should be running, with `database` showing `(healthy)`:
+```text
+NAME                           SERVICE    STATUS                    PORTS
+calculator-server-backend-1    backend    Up                        0.0.0.0:34242->5000/tcp
+calculator-server-database-1   database   Up (healthy)              127.0.0.1:54242->3306/tcp
+```
+
+### 4. Inspect Logs
+```bash
+docker compose logs backend database
+```
+
+---
+
+## Verification & Testing
+
+### 1. HTTP & Database Connectivity (`GET /test-db`)
+Verify that the FastAPI backend connects to MySQL and executes `SELECT 1`:
+```bash
+curl http://localhost:34242/test-db
+```
+**Expected response:**
+```json
+{"db_result":1}
+```
+
+### 2. Calculator Functionality (`POST /calculate`)
+Verify that existing calculator operations are fully operational:
+```bash
+curl -X POST http://localhost:34242/calculate \
+  -H "Content-Type: application/json" \
+  -d '{"expr": "7*8"}'
+```
+**Expected response:**
+```json
+{"ok":true,"expr":{"expr":"7*8"},"result":56,"error":""}
+```
+
+Interactive API documentation is available at [http://localhost:34242/docs](http://localhost:34242/docs).
+
+### 3. Database Data Persistence Across Container Recreation
+Verify that data stored in MySQL survives container destruction and recreation:
+
+1. **Log in to MySQL and insert test data:**
+   ```bash
+   docker compose exec database mysql -u appuser -pclassroom-app appdb -e "
+     CREATE TABLE IF NOT EXISTS lab_check (id INT AUTO_INCREMENT PRIMARY KEY, message VARCHAR(255));
+     INSERT INTO lab_check (message) VALUES ('data survives recreation');
+     SELECT * FROM lab_check;
+   "
+   ```
+
+2. **Destroy and recreate containers (without `-v`):**
+   ```bash
+   docker compose down
+   docker compose up -d
+   ```
+
+3. **Verify persisted data:**
+   ```bash
+   docker compose exec database mysql -u appuser -pclassroom-app appdb -e "SELECT * FROM lab_check;"
+   ```
+   **Output:**
+   ```text
+   +----+--------------------------+
+   | id | message                  |
+   +----+--------------------------+
+   |  1 | data survives recreation |
+   +----+--------------------------+
+   ```
+
+### 4. Running Unit Tests
+Run the test suite locally using `uv`:
+```bash
+cd calculator-server
+uv run pytest
+```
+**Expected result:** `21 passed`
+
+---
+
+## Running the React Frontend
+
+In a separate terminal:
+```bash
+cd calculator-react
 npm ci
 npm run dev
 ```
+Open `http://localhost:5173` in your browser to use the calculator interface.
 
-Open the URL printed by Vite, normally `http://localhost:5173`.
+---
 
-## Walk through the solution
-
-1. **Merge Labs 6 and 7.** `App.jsx` keeps the input, button rows, expression normalization, and API calls from Lab 6. The rounded panel, four-column grid, circular buttons, and orange operators follow Lab 7. Expressions are evaluated by the existing server.
-2. **Fetch on mount.** `useEffect(..., [])` loads `GET /history`. Its cleanup ignores responses from an effect that has already been cleaned up. In development, `StrictMode` may run the effect twice; this is expected.
-3. **Fetch after `=`.** The click handler awaits `POST /calculate`, displays the result, and then awaits `GET /history`. The new calculation appears without refreshing the page.
-4. **Fetch after Clear.** The handler awaits `DELETE /history` and then fetches `GET /history` again. The UI reflects the server's actual history rather than assuming the deletion worked. Clear affects history; AC resets only the display.
-5. **Create context.** `src/ThemeContext.js` exports `createContext("light")` from its own file.
-6. **Provide context.** `App` owns the theme state and wraps the UI with `<ThemeContext.Provider value={theme}>`. The toggle changes between `"light"` and `"dark"`.
-7. **Consume context.** `Button` calls `useContext(ThemeContext)` and chooses the matching Tailwind classes. Its `variant` prop identifies number, utility, operator, or action styling; the theme comes from context.
-
-The shared `fetchHistory()` function handles the GET request. The effect uses its own cleanup, while the click handlers use `refreshHistory()` to update state. Buttons are disabled while requests are pending so a calculation and history deletion cannot race. Failed requests show an error without falsely clearing existing history.
-
-`%` uses the earlier server's percentage rules, including `100 − 6% = 94`. `±` toggles the sign of the final numeric operand, for example `5+3` becomes `5+(-3)`. Calculation errors can be reset with AC or by entering a new number.
-
-## Verify
-
-```sh
-cd lecture-08-solution/calculator-react
-npm run lint
-npm run build
+## Stopping Containers
+To stop and remove running containers:
+```bash
+cd calculator-server
+docker compose down
 ```
-
-With both servers running:
-
-| Action | Expected result |
-| --- | --- |
-| Calculate `7 × 8 =` | Display shows `56`; history contains `7*8 = 56`. |
-| Refresh the browser | Existing server history loads automatically. |
-| Calculate `100 − 6% =` | Display shows `94`; history updates. |
-| Click Clear | History is deleted on the server and fetched again; the empty message appears. |
-| Refresh after Clear | History remains empty. |
-| Toggle the theme | Page, panels, and buttons change theme; input and history stay intact. |
-| Calculate `1 ÷ 0 =` | An error is shown; successful history remains available. |
-| Stop the API and click Clear | A connection error appears; existing displayed history is retained. |
-
-History is stored in memory by the existing server, so restarting that server clears it. Theme state resets to light on a browser refresh; persistence is outside the lab requirements.
+*(To also remove the persistent database volume, use `docker compose down -v`)*
