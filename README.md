@@ -1,142 +1,72 @@
-# Mini Calculator Server
+# Lab 8 solution: useEffect and useContext
 
-A FastAPI-based REST API for evaluating mathematical expressions with percentage logic support and safe evaluation via `asteval`.
+[Lab requirements](https://app.notion.com/p/northanapon/useEffect-and-useContext-236dd5f44b7f806c972fc87f79c81c77)
 
----
+This solution merges Lab 6's client/server calculator with Lab 7's Tailwind calculator design, then adds history loading and a light/dark theme. Previous lecture examples are left intact.
 
-## 🚀 Prerequisites
+## Use the same setup
 
-* **Python**: 3.13+
-* **Package Manager**: [`uv`](https://github.com/astral-sh/uv) (recommended) or standard `pip`
+- **Server:** `calculator-server` follows the [OOP refactoring lab](https://app.notion.com/p/northanapon/Apply-OOP-concepts-to-refactor-a-project-236dd5f44b7f80a094f9f5278bae5f24), with inherited schemas, FastAPI dependencies, and separate calculator/history routers. It keeps the earlier server's endpoints and React request/response format. See its [README](calculator-server/README.md) for the structure and tests.
+- **Client:** React 19, Vite 7, Tailwind CSS 4, and the same package manifest and lockfile as `lecture-06/calculator-react`.
+- **Components:** keep `App.jsx` and `Button.jsx`, adding only `ThemeContext.js`. Use `fetch`, `useState`, `useEffect`, and `useContext`; no additional libraries.
 
----
+## Run
 
-## 🛠️ How to Run Manually
+Open two terminals at the repository root. Use Node.js 22.12+ (or 20.19+) for Vite 7 and Python 3.13 with uv for the calculator server, as in the earlier labs.
 
-### Option 1: Using `uv` (Recommended)
+Terminal 1 — install dependencies and start the included server:
 
-1. **Install dependencies**:
-   ```bash
-   uv sync
-   ```
-
-2. **Start the FastAPI dev server**:
-   ```bash
-   uv run uvicorn main:app --reload
-   ```
-   *Alternatively, using FastAPI CLI:*
-   ```bash
-   uv run fastapi dev main.py
-   ```
-
----
-
-### Option 2: Using Standard `pip` and Virtual Environment
-
-1. **Create and activate a virtual environment**:
-   ```bash
-   # macOS / Linux
-   python3 -m venv .venv
-   source .venv/bin/activate
-
-   # Windows (PowerShell)
-   python -m venv .venv
-   .venv\Scripts\Activate.ps1
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pip install -U pip
-   pip install fastapi "uvicorn[standard]" asteval pytest httpx
-   ```
-
-3. **Run the server**:
-   ```bash
-   uvicorn main:app --reload
-   ```
-
----
-
-## 📡 API Endpoints & Documentation
-
-Once the server is running, access the interactive API docs at:
-* **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-* **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-
-### Data Models (`models.py`)
-
-* **`Expression`**: Request body for calculation containing `expr: str` and `expand_percent()` method.
-* **`CalculatorLog`**: Calculation history entry containing `timestamp`, `expr`, and `result`.
-
-### Endpoints Specification
-
-#### 1. Calculate Expression
-* **`POST /calculate`**
-  * **Request Body** (`Expression`):
-    ```json
-    {
-      "expr": "5 + 10%"
-    }
-    ```
-  * **Example Request**:
-    ```bash
-    curl -X POST "http://127.0.0.1:8000/calculate" \
-         -H "Content-Type: application/json" \
-         -d '{"expr": "5 + 10%"}'
-    ```
-  * **Example Response**:
-    ```json
-    {
-      "ok": true,
-      "expr": "5 + 10%",
-      "result": 5.5,
-      "error": ""
-    }
-    ```
-
-#### 2. Get Calculation History
-* **`GET /history`**
-  * **Query Parameter**: `limit` (optional integer, default `50`)
-  * **Example Request**:
-    ```bash
-    curl -X GET "http://127.0.0.1:8000/history?limit=10"
-    ```
-  * **Example Response** (`list[CalculatorLog]`):
-    ```json
-    [
-      {
-        "timestamp": "2026-08-27T23:20:00.000000",
-        "expr": "5 + 10%",
-        "result": 5.5
-      }
-    ]
-    ```
-
-#### 3. Clear History
-* **`DELETE /history`**
-  * **Example Request**:
-    ```bash
-    curl -X DELETE "http://127.0.0.1:8000/history"
-    ```
-  * **Example Response**:
-    ```json
-    {
-      "ok": true,
-      "message": "History cleared"
-    }
-    ```
-
----
-
-## 🧪 Running Unit Tests
-
-Run the test suite using `pytest`:
-
-```bash
-# With uv
-uv run pytest
-
-# With activated virtual environment
-pytest
+```sh
+cd lecture-08-solution/calculator-server
+uv sync --frozen
+uv run fastapi dev app/main.py
 ```
 
+The API runs at `http://localhost:8000`; its documentation is at `http://localhost:8000/docs`.
+
+Terminal 2 — start the solution:
+
+```sh
+cd lecture-08-solution/calculator-react
+npm ci
+npm run dev
+```
+
+Open the URL printed by Vite, normally `http://localhost:5173`.
+
+## Walk through the solution
+
+1. **Merge Labs 6 and 7.** `App.jsx` keeps the input, button rows, expression normalization, and API calls from Lab 6. The rounded panel, four-column grid, circular buttons, and orange operators follow Lab 7. Expressions are evaluated by the existing server.
+2. **Fetch on mount.** `useEffect(..., [])` loads `GET /history`. Its cleanup ignores responses from an effect that has already been cleaned up. In development, `StrictMode` may run the effect twice; this is expected.
+3. **Fetch after `=`.** The click handler awaits `POST /calculate`, displays the result, and then awaits `GET /history`. The new calculation appears without refreshing the page.
+4. **Fetch after Clear.** The handler awaits `DELETE /history` and then fetches `GET /history` again. The UI reflects the server's actual history rather than assuming the deletion worked. Clear affects history; AC resets only the display.
+5. **Create context.** `src/ThemeContext.js` exports `createContext("light")` from its own file.
+6. **Provide context.** `App` owns the theme state and wraps the UI with `<ThemeContext.Provider value={theme}>`. The toggle changes between `"light"` and `"dark"`.
+7. **Consume context.** `Button` calls `useContext(ThemeContext)` and chooses the matching Tailwind classes. Its `variant` prop identifies number, utility, operator, or action styling; the theme comes from context.
+
+The shared `fetchHistory()` function handles the GET request. The effect uses its own cleanup, while the click handlers use `refreshHistory()` to update state. Buttons are disabled while requests are pending so a calculation and history deletion cannot race. Failed requests show an error without falsely clearing existing history.
+
+`%` uses the earlier server's percentage rules, including `100 − 6% = 94`. `±` toggles the sign of the final numeric operand, for example `5+3` becomes `5+(-3)`. Calculation errors can be reset with AC or by entering a new number.
+
+## Verify
+
+```sh
+cd lecture-08-solution/calculator-react
+npm run lint
+npm run build
+```
+
+With both servers running:
+
+| Action | Expected result |
+| --- | --- |
+| Calculate `7 × 8 =` | Display shows `56`; history contains `7*8 = 56`. |
+| Refresh the browser | Existing server history loads automatically. |
+| Calculate `100 − 6% =` | Display shows `94`; history updates. |
+| Click Clear | History is deleted on the server and fetched again; the empty message appears. |
+| Refresh after Clear | History remains empty. |
+| Toggle the theme | Page, panels, and buttons change theme; input and history stay intact. |
+| Calculate `1 ÷ 0 =` | An error is shown; successful history remains available. |
+| Stop the API and click Clear | A connection error appears; existing displayed history is retained. |
+
+History is stored in memory by the existing server, so restarting that server clears it. Theme state resets to light on a browser refresh; persistence is outside the lab requirements.

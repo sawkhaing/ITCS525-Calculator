@@ -1,0 +1,5 @@
+How do I add FastAPI, SQLAlchemy, and MySQL connector dependencies and export a frozen requirements.txt file using uv in a Python project?
+How do I write a Dockerfile using python:3.13-slim-bookworm to run a FastAPI application on 0.0.0.0:5000 in development mode with proper layer caching?
+How do I configure a .dockerignore file for a Python FastAPI project to exclude virtual environments, cache files, and git metadata?
+How do I create a compose.yaml file that runs a FastAPI backend and a mysql:8.4 database service with healthchecks, named volumes for data persistence, bind mounts for live code reloading, and custom port mappings?
+How do I add a /test-db route using SQLAlchemy in FastAPI to test database connectivity with SELECT 1 without interfering with existing calculator endpoints?

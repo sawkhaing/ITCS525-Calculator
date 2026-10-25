@@ -1,0 +1,14 @@
+[project]
+name = "calculator-server"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "asteval>=1.0.10",
+    "fastapi[standard]>=0.141.1",
+    "httpx2>=2.13.0",
+    "mysql-connector-python>=26.10.0",
+    "pytest>=9.1.1",
+    "sqlalchemy>=2.1.6",
+]

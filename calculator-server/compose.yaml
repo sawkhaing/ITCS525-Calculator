@@ -1,0 +1,33 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "34242:5000"
+    environment:
+      DATABASE_URL: mysql+mysqlconnector://appuser:classroom-app@database:3306/appdb
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: classroom-root
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: classroom-app
+    ports:
+      - "127.0.0.1:54242:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=classroom-app mysql --protocol=TCP -h 127.0.0.1 -u appuser appdb -e 'SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+volumes:
+  dbdata:
