@@ -131,6 +131,9 @@ Verify that data stored in MySQL survives container destruction and recreation:
    +----+--------------------------+
    ```
 
+#### Why this check is stronger than restarting the same container:
+> **Explanation:** Simply restarting a container (e.g. `docker restart`) preserves the container instance and its internal writable layer intact, meaning data could survive in the container's temporary filesystem even without a volume configured. In contrast, `docker compose down` completely destroys the container instance and its writable layer. When `docker compose up -d` creates a brand-new container, the data surviving proves that storage truly persists in the external named volume (`dbdata:/var/lib/mysql`), decoupled from the container's lifecycle.
+
 ### 4. Running Unit Tests
 Run the test suite locally using `uv`:
 ```bash
